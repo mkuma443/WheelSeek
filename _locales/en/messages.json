@@ -1,0 +1,41 @@
+{
+  "extensionName": {
+    "message": "WheelSeek"
+  },
+  "extensionDescription": {
+    "message": "Seek YouTube and Twitch videos with the mouse wheel."
+  },
+  "tagline": {
+    "message": "Scroll to seek videos"
+  },
+  "seekAmount": {
+    "message": "Seek amount"
+  },
+  "shiftHint": {
+    "message": "Hold Shift for a fixed 30-second seek."
+  },
+  "experimental": {
+    "message": "Experimental"
+  },
+  "experimentalFeatures": {
+    "message": "Experimental features"
+  },
+  "variableSeek": {
+    "message": "Variable seek"
+  },
+  "variableSeekDescription": {
+    "message": "5–30 seconds based on wheel intensity"
+  },
+  "broadcastClock": {
+    "message": "Broadcast clock"
+  },
+  "broadcastClockDescription": {
+    "message": "Show local broadcast time while seeking"
+  },
+  "supportedSites": {
+    "message": "YouTube and Twitch"
+  },
+  "saved": {
+    "message": "Saved"
+  }
+}

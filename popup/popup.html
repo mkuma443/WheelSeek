@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>WheelSeek</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="mark" aria-hidden="true">
+          <img src="../icons/icon-48.png" alt="">
+        </div>
+        <div>
+          <h1>WheelSeek</h1>
+          <p data-i18n="tagline">Scroll to seek videos</p>
+        </div>
+      </header>
+
+      <section aria-labelledby="seek-heading">
+        <div class="section-title">
+          <h2 id="seek-heading" data-i18n="seekAmount">Seek amount</h2>
+          <output id="seek-value" for="seek-seconds">10s</output>
+        </div>
+        <input
+          id="seek-seconds"
+          type="range"
+          min="5"
+          max="30"
+          step="1"
+          value="10"
+        >
+        <div class="range-labels" aria-hidden="true">
+          <span>5s</span>
+          <span>30s</span>
+        </div>
+        <p class="hint" data-i18n="shiftHint">Hold Shift for a fixed 30-second seek.</p>
+      </section>
+
+      <section class="experiments" aria-labelledby="experiments-heading">
+        <div class="eyebrow" data-i18n="experimental">Experimental</div>
+        <h2 id="experiments-heading" class="visually-hidden" data-i18n="experimentalFeatures">
+          Experimental features
+        </h2>
+
+        <label class="toggle-row" for="variable-seek">
+          <span>
+            <strong data-i18n="variableSeek">Variable seek</strong>
+            <small data-i18n="variableSeekDescription">5–30 seconds based on wheel intensity</small>
+          </span>
+          <span class="toggle">
+            <input id="variable-seek" type="checkbox">
+            <span class="toggle-track" aria-hidden="true"></span>
+          </span>
+        </label>
+
+        <label class="toggle-row" for="broadcast-clock">
+          <span>
+            <strong data-i18n="broadcastClock">Broadcast clock</strong>
+            <small data-i18n="broadcastClockDescription">Show local broadcast time while seeking</small>
+          </span>
+          <span class="toggle">
+            <input id="broadcast-clock" type="checkbox">
+            <span class="toggle-track" aria-hidden="true"></span>
+          </span>
+        </label>
+      </section>
+
+      <footer>
+        <span class="status-dot" aria-hidden="true"></span>
+        <span data-i18n="supportedSites">YouTube and Twitch</span>
+        <span id="save-status" role="status" aria-live="polite"></span>
+      </footer>
+    </main>
+    <script src="../lib/seek-core.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

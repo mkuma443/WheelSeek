@@ -1,0 +1,50 @@
+#wheelseek-overlay {
+  align-items: center;
+  background: rgba(8, 12, 20, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.36);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  font-family:
+    Inter, Roboto, "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
+  gap: 3px;
+  left: 0;
+  opacity: 0;
+  padding: 9px 14px 10px;
+  pointer-events: none;
+  position: fixed;
+  top: 0;
+  transform: translate(-50%, -8px);
+  transition:
+    opacity 110ms ease,
+    transform 110ms ease;
+  user-select: none;
+  visibility: hidden;
+  z-index: 2147483647;
+}
+
+#wheelseek-overlay.wheelseek-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+  visibility: visible;
+}
+
+#wheelseek-overlay .wheelseek-clock {
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+#wheelseek-overlay .wheelseek-seek {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.2;
+  white-space: nowrap;
+}

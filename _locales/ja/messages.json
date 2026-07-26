@@ -1,0 +1,41 @@
+{
+  "extensionName": {
+    "message": "WheelSeek"
+  },
+  "extensionDescription": {
+    "message": "YouTubeとTwitchの動画をマウスホイールで早送り・巻き戻しできます。"
+  },
+  "tagline": {
+    "message": "ホイールで動画をシーク"
+  },
+  "seekAmount": {
+    "message": "通常のシーク量"
+  },
+  "shiftHint": {
+    "message": "Shiftキーを押しながら回すと30秒シークします。"
+  },
+  "experimental": {
+    "message": "実験的機能"
+  },
+  "experimentalFeatures": {
+    "message": "実験的機能"
+  },
+  "variableSeek": {
+    "message": "可変シーク"
+  },
+  "variableSeekDescription": {
+    "message": "回転量に応じて5～30秒に変化"
+  },
+  "broadcastClock": {
+    "message": "放送時刻を表示"
+  },
+  "broadcastClockDescription": {
+    "message": "シーク中に映像の推定放送時刻を表示"
+  },
+  "supportedSites": {
+    "message": "YouTube・Twitch対応"
+  },
+  "saved": {
+    "message": "保存済み"
+  }
+}
