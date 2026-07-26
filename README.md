@@ -10,7 +10,7 @@ mouse wheel while the pointer is inside the rendered video.
 - Default seek amount: 10 seconds
 - Shift + wheel: fixed 30-second seek
 - Configurable seek amount from 5 to 30 seconds
-- Experimental variable seek based on recent wheel intensity
+- Experimental variable seek from 5 to 60 seconds based on recent wheel intensity
 - Experimental local broadcast clock for live streams and live archives
 - Supports regular videos, seekable live streams, and live archives
 - Does not run on YouTube Shorts, Twitch Clips, or embedded players

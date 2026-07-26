@@ -17,7 +17,7 @@ leaving the video area.
 - Scroll down to seek backward.
 - Hold Shift for a fixed 30-second jump.
 - Choose a default seek amount from 5 to 30 seconds.
-- Optionally vary the jump from 5 to 30 seconds based on wheel intensity.
+- Optionally vary the jump from 5 to 60 seconds based on wheel intensity.
 - Optionally show the estimated local broadcast time while seeking a live
   archive.
 
@@ -39,7 +39,7 @@ WheelSeekは、動画の上でマウスホイールを回すだけでYouTubeとT
 - 下方向へ回すと巻き戻し
 - Shiftキーを押しながら回すと30秒シーク
 - 通常のシーク量を5～30秒から設定
-- 回転量に応じた5～30秒の可変シーク（実験的機能）
+- 回転量に応じた5～60秒の可変シーク（実験的機能）
 - ライブアーカイブの推定放送時刻をシーク中に表示（実験的機能）
 
 通常動画、シーク可能なライブ配信、ライブアーカイブに対応しています。

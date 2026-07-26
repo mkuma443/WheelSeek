@@ -24,7 +24,7 @@
     "message": "Variable seek"
   },
   "variableSeekDescription": {
-    "message": "5–30 seconds based on wheel intensity"
+    "message": "5–60 seconds based on wheel intensity"
   },
   "broadcastClock": {
     "message": "Broadcast clock"

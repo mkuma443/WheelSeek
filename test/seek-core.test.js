@@ -20,11 +20,13 @@ test("wheel deltas are normalized from pixels, lines, and pages", () => {
   assert.equal(Core.normalizeWheelDelta({ deltaY: 1, deltaMode: 2 }, 900), 900);
 });
 
-test("variable seek maps recent wheel intensity from 5 to 30 seconds", () => {
+test("variable seek maps recent wheel intensity from 5 to 60 seconds", () => {
   assert.equal(Core.variableSeekSeconds(20), 5);
   assert.equal(Core.variableSeekSeconds(101), 10);
   assert.equal(Core.variableSeekSeconds(499), 25);
-  assert.equal(Core.variableSeekSeconds(900), 30);
+  assert.equal(Core.variableSeekSeconds(900), 45);
+  assert.equal(Core.variableSeekSeconds(1200), 60);
+  assert.equal(Core.variableSeekSeconds(1800), 60);
 });
 
 test("Shift seek overrides fixed and variable preferences", () => {

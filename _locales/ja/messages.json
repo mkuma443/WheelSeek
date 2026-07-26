@@ -24,7 +24,7 @@
     "message": "可変シーク"
   },
   "variableSeekDescription": {
-    "message": "回転量に応じて5～30秒に変化"
+    "message": "回転量に応じて5～60秒に変化"
   },
   "broadcastClock": {
     "message": "放送時刻を表示"
