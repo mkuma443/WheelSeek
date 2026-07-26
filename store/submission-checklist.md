@@ -4,7 +4,7 @@
 
 - [x] Manifest V3 ZIP：`dist/WheelSeek-0.1.0.zip`
 - [x] 128×128 PNGアイコン：`icons/icon-128.png`
-- [x] 1280×800 PNGスクリーンショット案（3枚）
+- [x] 1280×800 PNGスクリーンショット（日英各1枚）
 - [x] 440×280 PNGプロモーション画像
 - [x] 日本語掲載文：`store/listing-ja.md`
 - [x] 英語掲載文：`store/listing-en.md`
@@ -18,7 +18,6 @@
 
 ## 任意だが推奨
 
-- [x] 1400×560 PNGマーキー画像
 - [ ] 機能紹介YouTube動画
 - [x] ホームページ：https://github.com/mkuma443/WheelSeek
 - [x] サポートURL：https://github.com/mkuma443/WheelSeek/issues

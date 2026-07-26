@@ -19,7 +19,7 @@
 
 ### 440×280プロモーション画像
 
-![440×280 promotional image](assets/promo-small-440x280.png)
+![440×280 promotional image](assets/en/wheelseek-en-promo-small-440x280.png)
 
 ### 1280×800スクリーンショット
 
@@ -34,12 +34,6 @@
 スクリーンショットは、放送時刻の推測表示と5～60秒の可変シークを中心に、
 実装済みUIと挙動を再構成しています。
 
-## 任意画像
-
-### 1400×560マーキー画像
-
-![1400×560 marquee](assets/promo-marquee-1400x560.png)
-
 ## 公式要件
 
 - [Supplying Images](https://developer.chrome.com/docs/webstore/images)
@@ -53,5 +47,5 @@
 .\tools\generate-store-assets.ps1
 .\tools\generate-store-screenshot-01.ps1 -Locale ja
 .\tools\generate-store-screenshot-01.ps1 -Locale en
-.\tools\generate-store-promo-small.ps1
+.\tools\generate-store-promo-small.ps1 -Locale en
 ```
