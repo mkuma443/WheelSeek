@@ -9,7 +9,7 @@
   flex-direction: column;
   font-family:
     Inter, Roboto, "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
-  gap: 3px;
+  gap: 2px;
   left: 0;
   opacity: 0;
   padding: 9px 14px 10px;
@@ -32,10 +32,20 @@
 }
 
 #wheelseek-overlay .wheelseek-clock {
-  font-size: 18px;
+  font-size: 22px;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   letter-spacing: 0.025em;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+#wheelseek-overlay .wheelseek-date {
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: 0.04em;
   line-height: 1.2;
   white-space: nowrap;
 }

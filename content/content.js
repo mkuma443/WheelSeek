@@ -6,7 +6,7 @@
   const WHEEL_THRESHOLD_PX = 50;
   const VARIABLE_WINDOW_MS = 250;
   const MIN_SEEK_INTERVAL_MS = 70;
-  const OVERLAY_DURATION_MS = 1250;
+  const OVERLAY_DURATION_MS = 1750;
   const LIVE_DVR_MINIMUM_SECONDS = 30;
   const YOUTUBE_METADATA_SOURCE = "wheelseek-page-metadata";
 
@@ -221,7 +221,9 @@
     overlay.setAttribute("role", "status");
     overlay.setAttribute("aria-live", "polite");
     overlay.innerHTML =
-      '<span class="wheelseek-clock"></span><span class="wheelseek-seek"></span>';
+      '<span class="wheelseek-date"></span>' +
+      '<span class="wheelseek-clock"></span>' +
+      '<span class="wheelseek-seek"></span>';
     document.documentElement.append(overlay);
     return overlay;
   }
@@ -241,17 +243,26 @@
 
   function showOverlay(video, signedSeconds, bounds) {
     const overlay = ensureOverlay();
+    const date = overlay.querySelector(".wheelseek-date");
     const clock = overlay.querySelector(".wheelseek-clock");
     const seek = overlay.querySelector(".wheelseek-seek");
     const direction = signedSeconds > 0 ? "+" : "−";
     const broadcastDate = settings.broadcastClockEnabled
       ? getBroadcastDate(video, bounds)
       : null;
-
-    clock.textContent = broadcastDate
+    const formattedDateTime = broadcastDate
       ? Core.formatLocalDateTime(broadcastDate)
+      : null;
+    const [dateText, timeText] = formattedDateTime
+      ? formattedDateTime.split(" ")
+      : ["", ""];
+
+    date.textContent = dateText;
+    date.hidden = !formattedDateTime;
+    clock.textContent = formattedDateTime
+      ? timeText
       : `${direction}${Math.abs(signedSeconds)}s`;
-    seek.textContent = broadcastDate
+    seek.textContent = formattedDateTime
       ? `${direction}${Math.abs(signedSeconds)}s`
       : "";
     positionOverlay(overlay, video);
