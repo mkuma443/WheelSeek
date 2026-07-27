@@ -94,9 +94,7 @@ Shiftキーを押している場合は、可変シークの設定よりも30秒�
 
 ### インストール
 
-Chromeウェブストアで近日公開予定です。
-
-公開後、このセクションにインストールページへのリンクを掲載します。
+[ChromeウェブストアからWheelSeekをインストール](https://chromewebstore.google.com/detail/wheelseek/hmhobkbiphpgnhkjjopellhefeimfidf)
 
 ### ローカルでのインストール
 
@@ -250,9 +248,7 @@ Open the settings panel from the WheelSeek toolbar icon.
 
 ### Installation
 
-Coming soon to the Chrome Web Store.
-
-A link to the installation page will be added here after release.
+[Install WheelSeek from the Chrome Web Store](https://chromewebstore.google.com/detail/wheelseek/hmhobkbiphpgnhkjjopellhefeimfidf)
 
 ### Local installation
 
