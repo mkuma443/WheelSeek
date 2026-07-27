@@ -2,6 +2,7 @@
   "use strict";
 
   const Core = globalThis.WheelSeekCore;
+  const YouTubeMetadata = globalThis.WheelSeekYouTubeMetadata;
   const STORAGE_KEYS = Object.keys(Core.DEFAULT_SETTINGS);
   const WHEEL_THRESHOLD_PX = 50;
   const VARIABLE_WINDOW_MS = 250;
@@ -60,6 +61,12 @@
 
   function isTwitch() {
     return location.hostname === "www.twitch.tv";
+  }
+
+  function getCurrentYouTubeMetadata() {
+    return YouTubeMetadata.metadataMatchesUrl(youtubeMetadata, location.href)
+      ? youtubeMetadata
+      : null;
   }
 
   function isSupportedPath() {
@@ -129,8 +136,9 @@
 
   function isProbablyLive(video) {
     if (isYouTube()) {
+      const currentMetadata = getCurrentYouTubeMetadata();
       return (
-        youtubeMetadata?.isLive === true ||
+        currentMetadata?.isLive === true ||
         !Number.isFinite(video.duration) ||
         video.duration === Infinity
       );
@@ -198,9 +206,17 @@
       return Core.liveClockDate(Date.now(), video.currentTime, bounds.end);
     }
 
-    const startTimestamp = isYouTube()
-      ? youtubeMetadata?.startTimestamp
-      : getTwitchStartTimestamp();
+    let startTimestamp = null;
+
+    if (isYouTube()) {
+      const currentMetadata = getCurrentYouTubeMetadata();
+
+      if (currentMetadata?.isLiveContent === true) {
+        startTimestamp = currentMetadata.startTimestamp;
+      }
+    } else {
+      startTimestamp = getTwitchStartTimestamp();
+    }
 
     if (!startTimestamp) {
       return null;

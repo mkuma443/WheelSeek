@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
   "short_name": "WheelSeek",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "minimum_chrome_version": "111",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
@@ -37,6 +37,7 @@
         "https://m.youtube.com/*"
       ],
       "js": [
+        "lib/youtube-metadata.js",
         "content/page-metadata.js"
       ],
       "run_at": "document_start",
@@ -50,6 +51,7 @@
       ],
       "js": [
         "lib/seek-core.js",
+        "lib/youtube-metadata.js",
         "content/content.js"
       ],
       "css": [
