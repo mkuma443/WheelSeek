@@ -1,5 +1,4 @@
 from pathlib import Path
-import shutil
 
 import numpy as np
 from PIL import Image
@@ -60,6 +59,16 @@ def save_icon_sizes(source_square: Image.Image) -> None:
         output.save(ICON_DIRECTORY / f"icon-{size}.png", optimize=True)
 
 
+def save_store_icon(source_square: Image.Image) -> None:
+    size = 128
+    background = Image.new("RGBA", (size, size), (9, 17, 22, 255))
+
+    # Keep the store mark visually prominent while retaining a dark backdrop.
+    motif = source_square.resize((120, 120), Image.Resampling.LANCZOS)
+    background.alpha_composite(motif, (4, 4))
+    background.save(STORE_ICON_PATH, optimize=True)
+
+
 def main() -> None:
     if not SOURCE_PATH.exists():
         raise FileNotFoundError(f"Master icon not found: {SOURCE_PATH}")
@@ -68,11 +77,12 @@ def main() -> None:
         isolated = isolate_green_motif(source)
     source_square = square_crop_around_motif(isolated)
     save_icon_sizes(source_square)
-    shutil.copy2(ICON_DIRECTORY / "icon-128.png", STORE_ICON_PATH)
+    save_store_icon(source_square)
 
     for size in SIZES:
         path = ICON_DIRECTORY / f"icon-{size}.png"
         print(f"{path.name}: {path.stat().st_size} bytes")
+    print(f"store icon: {STORE_ICON_PATH.stat().st_size} bytes")
 
 
 if __name__ == "__main__":
