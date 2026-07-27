@@ -9,7 +9,22 @@
   const MIN_SEEK_INTERVAL_MS = 70;
   const OVERLAY_DURATION_MS = 1750;
   const LIVE_DVR_MINIMUM_SECONDS = 30;
+  const TWITCH_DVR_ACTIVATION_POLL_MS = 50;
+  const TWITCH_DVR_ACTIVATION_TIMEOUT_MS = 1000;
   const YOUTUBE_METADATA_SOURCE = "wheelseek-page-metadata";
+  const TWITCH_RESERVED_SEGMENTS = new Set([
+    "directory",
+    "downloads",
+    "drops",
+    "inventory",
+    "jobs",
+    "p",
+    "search",
+    "settings",
+    "subscriptions",
+    "turbo",
+    "wallet"
+  ]);
 
   let settings = { ...Core.DEFAULT_SETTINGS };
   let wheelAccumulator = 0;
@@ -69,6 +84,15 @@
       : null;
   }
 
+  function isTwitchLiveSession() {
+    if (!isTwitch() || !/^\/[^/]+\/?$/.test(location.pathname)) {
+      return false;
+    }
+
+    const channel = location.pathname.split("/").filter(Boolean)[0] || "";
+    return !TWITCH_RESERVED_SEGMENTS.has(channel.toLowerCase());
+  }
+
   function isSupportedPath() {
     if (isYouTube()) {
       return location.pathname === "/watch" || location.pathname.startsWith("/live/");
@@ -76,24 +100,11 @@
 
     if (isTwitch()) {
       const firstSegment = location.pathname.split("/").filter(Boolean)[0] || "";
-      const reservedSegments = new Set([
-        "directory",
-        "downloads",
-        "drops",
-        "inventory",
-        "jobs",
-        "p",
-        "search",
-        "settings",
-        "subscriptions",
-        "turbo",
-        "wallet"
-      ]);
 
       return (
         location.pathname.startsWith("/videos/") ||
         (/^\/[^/]+\/?$/.test(location.pathname) &&
-          !reservedSegments.has(firstSegment.toLowerCase()))
+          !TWITCH_RESERVED_SEGMENTS.has(firstSegment.toLowerCase()))
       );
     }
 
@@ -144,7 +155,11 @@
       );
     }
 
-    return !Number.isFinite(video.duration) || video.duration === Infinity;
+    return (
+      isTwitchLiveSession() ||
+      !Number.isFinite(video.duration) ||
+      video.duration === Infinity
+    );
   }
 
   function canSeek(video) {
@@ -202,19 +217,36 @@
   }
 
   function getBroadcastDate(video, bounds) {
+    if (isYouTube()) {
+      const currentMetadata = getCurrentYouTubeMetadata();
+
+      if (
+        currentMetadata?.isLiveContent === true &&
+        currentMetadata.startTimestamp
+      ) {
+        return Core.broadcastClockDate(
+          currentMetadata.startTimestamp,
+          Date.now(),
+          video.currentTime,
+          bounds.end
+        );
+      }
+    }
+
+    if (
+      isTwitchLiveSession() &&
+      Core.isOpenEndedLiveRange(video.duration, bounds)
+    ) {
+      return new Date();
+    }
+
     if (isProbablyLive(video)) {
       return Core.liveClockDate(Date.now(), video.currentTime, bounds.end);
     }
 
     let startTimestamp = null;
 
-    if (isYouTube()) {
-      const currentMetadata = getCurrentYouTubeMetadata();
-
-      if (currentMetadata?.isLiveContent === true) {
-        startTimestamp = currentMetadata.startTimestamp;
-      }
-    } else {
+    if (isTwitch()) {
       startTimestamp = getTwitchStartTimestamp();
     }
 
@@ -302,6 +334,58 @@
     return recentWheelSamples.reduce((sum, sample) => sum + sample.amount, 0);
   }
 
+  function dispatchTwitchDvrShortcut(video) {
+    const eventOptions = {
+      key: "ArrowLeft",
+      code: "ArrowLeft",
+      keyCode: 37,
+      which: 37,
+      bubbles: true,
+      cancelable: true
+    };
+
+    video.dispatchEvent(new KeyboardEvent("keydown", eventOptions));
+    video.dispatchEvent(new KeyboardEvent("keyup", eventOptions));
+  }
+
+  function seekFromTwitchLiveEdge(video, signedSeconds) {
+    dispatchTwitchDvrShortcut(video);
+    const activationStartedAt = performance.now();
+
+    function applySeekAfterActivation() {
+      const refreshedBounds = Core.getSeekBounds(video);
+
+      if (!refreshedBounds) {
+        return;
+      }
+
+      if (Core.isOpenEndedLiveRange(video.duration, refreshedBounds)) {
+        if (
+          performance.now() - activationStartedAt <
+          TWITCH_DVR_ACTIVATION_TIMEOUT_MS
+        ) {
+          setTimeout(applySeekAfterActivation, TWITCH_DVR_ACTIVATION_POLL_MS);
+        }
+        return;
+      }
+
+      const target = Core.resolveSeekTarget(
+        refreshedBounds.end,
+        signedSeconds,
+        refreshedBounds
+      );
+
+      if (target === null) {
+        return;
+      }
+
+      video.currentTime = target;
+      showOverlay(video, signedSeconds, refreshedBounds);
+    }
+
+    setTimeout(applySeekAfterActivation, TWITCH_DVR_ACTIVATION_POLL_MS);
+  }
+
   function handleWheel(event) {
     const [video] = getVisibleVideosAtPoint(event.clientX, event.clientY);
 
@@ -343,9 +427,20 @@
       recentAbsoluteDelta
     );
     const signedSeconds = Math.sign(wheelAccumulator) < 0 ? amount : -amount;
-    const target = Core.resolveSeekTarget(video.currentTime, signedSeconds, bounds);
-
     wheelAccumulator = 0;
+
+    if (
+      isTwitchLiveSession() &&
+      Core.isOpenEndedLiveRange(video.duration, bounds)
+    ) {
+      if (signedSeconds < 0) {
+        lastSeekAt = now;
+        seekFromTwitchLiveEdge(video, signedSeconds);
+      }
+      return;
+    }
+
+    const target = Core.resolveSeekTarget(video.currentTime, signedSeconds, bounds);
 
     if (target === null || Math.abs(target - video.currentTime) < 0.01) {
       return;

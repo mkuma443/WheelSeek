@@ -48,6 +48,25 @@ test("seek targets are clamped to the seekable range", () => {
   assert.equal(Core.resolveSeekTarget(15, -30, bounds), 10);
 });
 
+test("Twitch-style open-ended live ranges are detected", () => {
+  assert.equal(
+    Core.isOpenEndedLiveRange(Infinity, {
+      start: 0,
+      end: 1073741824,
+      span: 1073741824
+    }),
+    true
+  );
+  assert.equal(
+    Core.isOpenEndedLiveRange(10082, {
+      start: 0,
+      end: 10082,
+      span: 10082
+    }),
+    false
+  );
+});
+
 test("archive clock adds playback time to the actual start", () => {
   assert.equal(
     Core.archiveClockDate("2026-07-26T10:00:00.000Z", 32 * 60).toISOString(),
@@ -62,4 +81,15 @@ test("live clock subtracts distance from the live edge", () => {
     Core.liveClockDate(now, 940, 1000).toISOString(),
     "2026-07-26T10:59:00.000Z"
   );
+});
+
+test("YouTube live clock prefers the actual start timestamp over DVR end", () => {
+  const date = Core.broadcastClockDate(
+    "2026-07-27T02:29:50.000Z",
+    Date.parse("2026-07-27T04:20:56.000Z"),
+    6663.762,
+    10208
+  );
+
+  assert.equal(date.toISOString(), "2026-07-27T04:20:53.762Z");
 });
