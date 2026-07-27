@@ -9,8 +9,8 @@
   const MIN_SEEK_INTERVAL_MS = 70;
   const OVERLAY_DURATION_MS = 1750;
   const LIVE_DVR_MINIMUM_SECONDS = 30;
-  const TWITCH_DVR_ACTIVATION_POLL_MS = 50;
-  const TWITCH_DVR_ACTIVATION_TIMEOUT_MS = 1000;
+  const TWITCH_MODE_TRANSITION_POLL_MS = 50;
+  const TWITCH_MODE_TRANSITION_TIMEOUT_MS = 1000;
   const YOUTUBE_METADATA_SOURCE = "wheelseek-page-metadata";
   const TWITCH_RESERVED_SEGMENTS = new Set([
     "directory",
@@ -32,6 +32,9 @@
   let recentWheelSamples = [];
   let overlayTimer = null;
   let youtubeMetadata = null;
+  let twitchModeTransition = null;
+  let twitchSeekbarSessionKey = null;
+  let twitchSeekbarAvailable = false;
 
   function isVisible(element) {
     if (!(element instanceof Element)) {
@@ -46,6 +49,21 @@
       style.display !== "none" &&
       style.visibility !== "hidden" &&
       Number(style.opacity) !== 0
+    );
+  }
+
+  function isAvailableSeekbar(element) {
+    if (!(element instanceof Element)) {
+      return false;
+    }
+
+    const rect = element.getBoundingClientRect();
+    const style = getComputedStyle(element);
+    return (
+      rect.width > 40 &&
+      rect.height > 0 &&
+      style.display !== "none" &&
+      style.visibility !== "hidden"
     );
   }
 
@@ -70,12 +88,35 @@
       });
   }
 
+  function isPointInsideTwitchPlayer(x, y) {
+    const player = document.querySelector("[data-a-target='video-player']");
+
+    if (!(player instanceof Element)) {
+      return false;
+    }
+
+    const rect = player.getBoundingClientRect();
+    return (
+      rect.width >= 160 &&
+      rect.height >= 90 &&
+      x >= rect.left &&
+      x <= rect.right &&
+      y >= rect.top &&
+      y <= rect.bottom
+    );
+  }
+
   function isYouTube() {
     return location.hostname === "www.youtube.com" || location.hostname === "m.youtube.com";
   }
 
   function isTwitch() {
     return location.hostname === "www.twitch.tv";
+  }
+
+  function getTwitchSeekbarSessionKey() {
+    const path = location.pathname.replace(/\/+$/, "") || "/";
+    return `${location.origin}${path}`;
   }
 
   function getCurrentYouTubeMetadata() {
@@ -111,7 +152,7 @@
     return false;
   }
 
-  function hasVisibleSiteSeekbar() {
+  function hasAvailableSiteSeekbar() {
     const selectors = isYouTube()
       ? [
           ".ytp-progress-bar[role='slider']",
@@ -124,9 +165,44 @@
           "input[type='range'][aria-label*='seek' i]"
         ];
 
-    return selectors.some((selector) =>
-      [...document.querySelectorAll(selector)].some(isVisible)
-    );
+    if (!isTwitch()) {
+      return selectors.some((selector) =>
+        [...document.querySelectorAll(selector)].some(isVisible)
+      );
+    }
+
+    const sessionKey = getTwitchSeekbarSessionKey();
+
+    if (twitchSeekbarSessionKey !== sessionKey) {
+      twitchSeekbarSessionKey = sessionKey;
+      twitchSeekbarAvailable = false;
+    }
+
+    // Twitch can briefly remove the seekbar while switching between live and
+    // DVR. Once shown, keep its availability latched until the route changes.
+    if (!twitchSeekbarAvailable) {
+      twitchSeekbarAvailable = selectors.some((selector) =>
+        [...document.querySelectorAll(selector)].some(isAvailableSeekbar)
+      );
+    }
+
+    return twitchSeekbarAvailable;
+  }
+
+  function beginTwitchModeTransition(video) {
+    const transition = { video };
+    twitchModeTransition = transition;
+    return transition;
+  }
+
+  function endTwitchModeTransition(transition) {
+    if (twitchModeTransition === transition) {
+      twitchModeTransition = null;
+    }
+  }
+
+  function isTwitchModeTransitionActive() {
+    return twitchModeTransition !== null;
   }
 
   function isAdvertisementPlaying(video) {
@@ -163,13 +239,17 @@
   }
 
   function canSeek(video) {
-    if (!isSupportedPath() || isAdvertisementPlaying(video) || !hasVisibleSiteSeekbar()) {
+    if (!isSupportedPath() || isAdvertisementPlaying(video)) {
       return false;
     }
 
     const bounds = Core.getSeekBounds(video);
 
     if (!bounds) {
+      return false;
+    }
+
+    if (!hasAvailableSiteSeekbar()) {
       return false;
     }
 
@@ -334,12 +414,13 @@
     return recentWheelSamples.reduce((sum, sample) => sum + sample.amount, 0);
   }
 
-  function dispatchTwitchDvrShortcut(video) {
+  function dispatchTwitchSeekShortcut(video, key) {
+    const isLeft = key === "ArrowLeft";
     const eventOptions = {
-      key: "ArrowLeft",
-      code: "ArrowLeft",
-      keyCode: 37,
-      which: 37,
+      key,
+      code: key,
+      keyCode: isLeft ? 37 : 39,
+      which: isLeft ? 37 : 39,
       bubbles: true,
       cancelable: true
     };
@@ -348,23 +429,57 @@
     video.dispatchEvent(new KeyboardEvent("keyup", eventOptions));
   }
 
+  function returnToTwitchLive(video, signedSeconds, bounds) {
+    const transition = beginTwitchModeTransition(video);
+    showOverlay(video, signedSeconds, bounds);
+    const transitionStartedAt = performance.now();
+
+    function continueReturnToLive() {
+      const refreshedBounds = Core.getSeekBounds(video);
+
+      if (
+        refreshedBounds &&
+        Core.isOpenEndedLiveRange(video.duration, refreshedBounds)
+      ) {
+        endTwitchModeTransition(transition);
+        return;
+      }
+
+      if (
+        performance.now() - transitionStartedAt >=
+        TWITCH_MODE_TRANSITION_TIMEOUT_MS
+      ) {
+        endTwitchModeTransition(transition);
+        return;
+      }
+
+      dispatchTwitchSeekShortcut(video, "ArrowRight");
+      setTimeout(continueReturnToLive, TWITCH_MODE_TRANSITION_POLL_MS);
+    }
+
+    dispatchTwitchSeekShortcut(video, "ArrowRight");
+    setTimeout(continueReturnToLive, TWITCH_MODE_TRANSITION_POLL_MS);
+  }
+
   function seekFromTwitchLiveEdge(video, signedSeconds) {
-    dispatchTwitchDvrShortcut(video);
+    const transition = beginTwitchModeTransition(video);
+    dispatchTwitchSeekShortcut(video, "ArrowLeft");
     const activationStartedAt = performance.now();
 
     function applySeekAfterActivation() {
       const refreshedBounds = Core.getSeekBounds(video);
 
-      if (!refreshedBounds) {
-        return;
-      }
-
-      if (Core.isOpenEndedLiveRange(video.duration, refreshedBounds)) {
+      if (
+        !refreshedBounds ||
+        Core.isOpenEndedLiveRange(video.duration, refreshedBounds)
+      ) {
         if (
           performance.now() - activationStartedAt <
-          TWITCH_DVR_ACTIVATION_TIMEOUT_MS
+          TWITCH_MODE_TRANSITION_TIMEOUT_MS
         ) {
-          setTimeout(applySeekAfterActivation, TWITCH_DVR_ACTIVATION_POLL_MS);
+          setTimeout(applySeekAfterActivation, TWITCH_MODE_TRANSITION_POLL_MS);
+        } else {
+          endTwitchModeTransition(transition);
         }
         return;
       }
@@ -376,17 +491,37 @@
       );
 
       if (target === null) {
+        endTwitchModeTransition(transition);
         return;
       }
 
+      const finishTransition = () => {
+        video.removeEventListener("seeked", finishTransition);
+        endTwitchModeTransition(transition);
+      };
+
+      video.addEventListener("seeked", finishTransition, { once: true });
       video.currentTime = target;
       showOverlay(video, signedSeconds, refreshedBounds);
+      setTimeout(finishTransition, TWITCH_MODE_TRANSITION_TIMEOUT_MS);
     }
 
-    setTimeout(applySeekAfterActivation, TWITCH_DVR_ACTIVATION_POLL_MS);
+    setTimeout(applySeekAfterActivation, TWITCH_MODE_TRANSITION_POLL_MS);
   }
 
   function handleWheel(event) {
+    const transitionDelta = Core.normalizeWheelDelta(event, window.innerHeight);
+
+    if (
+      transitionDelta !== 0 &&
+      isTwitchModeTransitionActive() &&
+      isPointInsideTwitchPlayer(event.clientX, event.clientY)
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
     const [video] = getVisibleVideosAtPoint(event.clientX, event.clientY);
 
     if (!video || !canSeek(video)) {
@@ -394,7 +529,7 @@
       return;
     }
 
-    const delta = Core.normalizeWheelDelta(event, window.innerHeight);
+    const delta = transitionDelta;
 
     if (delta === 0) {
       return;
@@ -447,6 +582,16 @@
     }
 
     lastSeekAt = now;
+
+    if (
+      signedSeconds > 0 &&
+      isTwitchLiveSession() &&
+      target >= bounds.end - 0.01
+    ) {
+      returnToTwitchLive(video, signedSeconds, bounds);
+      return;
+    }
+
     video.currentTime = target;
     showOverlay(video, signedSeconds, bounds);
   }
@@ -486,6 +631,10 @@
     capture: true,
     passive: false
   });
+
+  if (isTwitch()) {
+    hasAvailableSiteSeekbar();
+  }
 
   loadSettings().catch(() => {
     settings = { ...Core.DEFAULT_SETTINGS };
