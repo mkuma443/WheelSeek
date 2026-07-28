@@ -7,11 +7,22 @@ const Core = require("../lib/seek-core.js");
 test("settings are sanitized and bounded", () => {
   assert.deepEqual(Core.sanitizeSettings({ seekSeconds: 41 }), {
     seekSeconds: 30,
-    variableSeekEnabled: false,
-    broadcastClockEnabled: false
+    variableSeekEnabled: true,
+    broadcastClockEnabled: true
   });
   assert.equal(Core.sanitizeSettings({ seekSeconds: "7" }).seekSeconds, 7);
   assert.equal(Core.sanitizeSettings({ seekSeconds: "invalid" }).seekSeconds, 10);
+  assert.deepEqual(
+    Core.sanitizeSettings({
+      variableSeekEnabled: false,
+      broadcastClockEnabled: false
+    }),
+    {
+      seekSeconds: 10,
+      variableSeekEnabled: false,
+      broadcastClockEnabled: false
+    }
+  );
 });
 
 test("wheel deltas are normalized from pixels, lines, and pages", () => {
