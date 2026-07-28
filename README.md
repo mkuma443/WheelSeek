@@ -43,7 +43,7 @@ WheelSeekは、動画の表示領域上でマウスホイールを回して、Yo
 ### 実験的機能
 
 実験的機能は、拡張機能の設定画面から個別にON・OFFできます。
-初期状態ではOFFです。
+初期状態ではONです。
 
 #### 可変シーク
 
@@ -196,7 +196,7 @@ The following content is currently excluded:
 ### Experimental features
 
 Experimental features can be enabled or disabled individually from the
-extension settings. They are disabled by default.
+extension settings. They are enabled by default.
 
 #### Variable seek
 
