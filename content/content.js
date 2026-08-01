@@ -3,6 +3,7 @@
 
   const Core = globalThis.WheelSeekCore;
   const YouTubeMetadata = globalThis.WheelSeekYouTubeMetadata;
+  const TwitchMetadata = globalThis.WheelSeekTwitchMetadata;
   const STORAGE_KEYS = Object.keys(Core.DEFAULT_SETTINGS);
   const WHEEL_THRESHOLD_PX = 50;
   const VARIABLE_WINDOW_MS = 250;
@@ -35,6 +36,8 @@
   let twitchModeTransition = null;
   let twitchSeekbarSessionKey = null;
   let twitchSeekbarAvailable = false;
+  const twitchArchiveMetadataByVideoId = new Map();
+  const twitchArchiveMetadataRequests = new Map();
 
   function isVisible(element) {
     if (!(element instanceof Element)) {
@@ -260,7 +263,42 @@
     return true;
   }
 
+  function requestTwitchArchiveMetadata(videoId) {
+    if (
+      !videoId ||
+      twitchArchiveMetadataByVideoId.has(videoId) ||
+      twitchArchiveMetadataRequests.has(videoId)
+    ) {
+      return;
+    }
+
+    const request = TwitchMetadata.fetchArchiveMetadata(videoId)
+      .then((metadata) => {
+        twitchArchiveMetadataByVideoId.set(videoId, metadata);
+      })
+      .catch(() => {
+        twitchArchiveMetadataByVideoId.set(videoId, null);
+      })
+      .finally(() => {
+        twitchArchiveMetadataRequests.delete(videoId);
+      });
+
+    twitchArchiveMetadataRequests.set(videoId, request);
+  }
+
   function getTwitchStartTimestamp() {
+    const videoId = TwitchMetadata.extractVideoId(location.href);
+
+    if (videoId) {
+      const metadata = twitchArchiveMetadataByVideoId.get(videoId);
+
+      if (metadata?.startTimestamp) {
+        return metadata.startTimestamp;
+      }
+
+      requestTwitchArchiveMetadata(videoId);
+    }
+
     const metaSelectors = [
       "meta[property='og:video:release_date']",
       "meta[property='video:release_date']",
@@ -634,6 +672,9 @@
 
   if (isTwitch()) {
     hasAvailableSiteSeekbar();
+    requestTwitchArchiveMetadata(
+      TwitchMetadata.extractVideoId(location.href)
+    );
   }
 
   loadSettings().catch(() => {

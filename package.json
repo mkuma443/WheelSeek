@@ -1,10 +1,10 @@
 {
   "name": "wheelseek",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "private": true,
   "description": "Seek YouTube and Twitch videos with the mouse wheel.",
   "scripts": {
     "test": "node --test",
-    "check": "node --check lib/seek-core.js && node --check lib/youtube-metadata.js && node --check content/page-metadata.js && node --check content/content.js && node --check popup/popup.js"
+    "check": "node --check lib/seek-core.js && node --check lib/youtube-metadata.js && node --check lib/twitch-metadata.js && node --check content/page-metadata.js && node --check content/content.js && node --check popup/popup.js"
   }
 }
